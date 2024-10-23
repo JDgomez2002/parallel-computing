@@ -1,4 +1,5 @@
 # Laboratorio 4 🧪
+## Computación paralela y distribuida 💻
 ### Implementación de sumas de Riemann usando openMPI 🧑🏻‍💻
 - José Daniel Gómez Cabrera 21429
 
