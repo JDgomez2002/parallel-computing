@@ -12,7 +12,7 @@
 // Función a integrar: ejemplo f(x) = x^2
 double f(double x) {
     return x * x;
-    // return sin(x);
+    // return sin(x); //test de la funcion seno
 }
 
 int main(int argc, char** argv) {
@@ -22,11 +22,15 @@ int main(int argc, char** argv) {
     double h;              // Ancho de cada subintervalo
     double local_sum = 0;  // Suma parcial para cada proceso
     double total_sum;      // Suma total (resultado final)
+    double start_time, end_time; // Variables para medir tiempo
     
     // Inicializar MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // Iniciar el cronómetro
+    start_time = MPI_Wtime();
 
     // El proceso 0 establece los parámetros iniciales
     if (rank == 0) {
@@ -35,6 +39,9 @@ int main(int argc, char** argv) {
         b = 1.0;          // Límite superior
         n = 1000000;      // Número de subintervalos
         h = (b - a) / n;  // Ancho de cada subintervalo
+        
+        printf("Iniciando cálculo con %d procesos...\n", size);
+        printf("Número de subintervalos: %ld\n", n);
         
         // Enviar parámetros a todos los demás procesos
         for (int i = 1; i < size; i++) {
@@ -76,13 +83,25 @@ int main(int argc, char** argv) {
             total_sum += partial_sum;
         }
         
-        // Imprimir resultado
+        // Detener el cronómetro
+        end_time = MPI_Wtime();
+        double execution_time = end_time - start_time;
+        
+        // Imprimir resultados y estadísticas
+        printf("\nResultados:\n");
+        printf("------------\n");
         printf("Aproximación de la integral de f(x) = x^2 en [%.1f, %.1f]: %f\n", a, b, total_sum);
         
         // Calcular el valor exacto para comparar (para x^2, la integral es x^3/3)
         double exact_value = (pow(b, 3) - pow(a, 3)) / 3.0;
         printf("Valor exacto: %f\n", exact_value);
         printf("Error absoluto: %e\n", fabs(exact_value - total_sum));
+        
+        printf("\nEstadísticas de rendimiento:\n");
+        printf("---------------------------\n");
+        printf("Tiempo de ejecución: %f segundos\n", execution_time);
+        printf("Número de procesos: %d\n", size);
+        printf("Subintervalos por proceso: %ld\n", local_n);
     }
 
     MPI_Finalize();
